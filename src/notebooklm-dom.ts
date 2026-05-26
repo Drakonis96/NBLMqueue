@@ -188,7 +188,11 @@ const styles = `
   }
 
   .nblmq-count {
-    position: relative;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 1;
     color: #ffffff;
     font-size: 16px;
