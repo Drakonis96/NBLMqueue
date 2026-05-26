@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "NBLMqueue",
+  "version": "0.1.0",
+  "description": "Queue NotebookLM prompts and send them automatically one after another.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://notebooklm.google.com/*"
+  ],
+  "icons": {
+    "16": "logo.png",
+    "32": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
+  },
+  "action": {
+    "default_title": "NBLMqueue",
+    "default_icon": {
+      "16": "logo.png",
+      "32": "logo.png",
+      "48": "logo.png",
+      "128": "logo.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://notebooklm.google.com/*"
+      ],
+      "js": [
+        "content-script.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
