@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NBLMqueue Screenshot</title>
+    <style>
+      :root {
+        --bg: #10161f;
+        --panel: #1b2430;
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --text: #eef4ff;
+        --muted: #b7c2d6;
+        --green: #1a9b50;
+        --green-dark: #0f7e3e;
+        --lilac: #8b78d8;
+        --lilac-dark: #7563bf;
+        --red: #e74b3c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        width: 1280px;
+        height: 800px;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(139, 120, 216, 0.18), transparent 34%),
+          radial-gradient(circle at right center, rgba(26, 155, 80, 0.2), transparent 28%),
+          linear-gradient(180deg, #0d131b 0%, var(--bg) 100%);
+      }
+
+      .frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 56px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 32px;
+        align-items: center;
+      }
+
+      .copy {
+        padding-right: 24px;
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: #9fb4d6;
+        font-size: 18px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: 74px;
+        line-height: 0.98;
+      }
+
+      .subtitle {
+        margin: 0 0 24px;
+        color: var(--muted);
+        font-size: 28px;
+        line-height: 1.35;
+      }
+
+      .points {
+        display: grid;
+        gap: 14px;
+        margin-top: 28px;
+      }
+
+      .point {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 24px;
+      }
+
+      .point::before {
+        content: "";
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--green), var(--green-dark));
+        box-shadow: 0 0 0 6px rgba(26, 155, 80, 0.16);
+      }
+
+      .logo-card {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 320px;
+        border: 1px solid var(--panel-border);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.26);
+      }
+
+      .logo-card img {
+        width: 320px;
+        height: 320px;
+        object-fit: contain;
+      }
+
+      .demo {
+        position: absolute;
+        left: 56px;
+        right: 56px;
+        bottom: 52px;
+        border-radius: 30px;
+        border: 1px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        padding: 28px 34px;
+      }
+
+      .demo-label {
+        margin: 0 0 16px;
+        color: #91a6c8;
+        font-size: 18px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .demo-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .prompt-box {
+        flex: 1;
+        min-height: 116px;
+        padding: 30px 34px;
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #95a2b8;
+        font-size: 42px;
+      }
+
+      .sources {
+        color: #a7b1c2;
+        font-size: 24px;
+        white-space: nowrap;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .action {
+        width: 84px;
+        height: 84px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 34px;
+        font-weight: 700;
+      }
+
+      .action.stop {
+        background: var(--red);
+      }
+
+      .action.queue {
+        background: linear-gradient(180deg, var(--lilac), var(--lilac-dark));
+      }
+
+      .action.add {
+        background: linear-gradient(180deg, var(--green), var(--green-dark));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <section class="hero">
+        <div class="copy">
+          <p class="eyebrow">NotebookLM Queue Extension</p>
+          <h1>NBLMqueue</h1>
+          <p class="subtitle">Queue prompts, edit them, and let NotebookLM send them automatically one after another.</p>
+          <div class="points">
+            <div class="point">Keep adding prompts while NotebookLM is still responding</div>
+            <div class="point">Review, edit, and remove pending prompts at any time</div>
+            <div class="point">Store queue state locally for each notebook</div>
+          </div>
+        </div>
+        <div class="logo-card">
+          <img src="../logo.png" alt="NBLMqueue logo">
+        </div>
+      </section>
+
+      <section class="demo">
+        <p class="demo-label">Extension Controls Inside NotebookLM</p>
+        <div class="demo-row">
+          <div class="prompt-box">Responding...</div>
+          <div class="sources">30 sources</div>
+          <div class="actions">
+            <div class="action stop">□</div>
+            <div class="action queue">≡</div>
+            <div class="action add">+</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

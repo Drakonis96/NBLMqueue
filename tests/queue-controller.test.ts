@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { QueueController } from '../src/queue-controller';
 import { InMemoryStorageArea, NotebookQueueStore } from '../src/queue-store';
+import { QUEUE_COMPLETE_NOTIFICATION_MESSAGE } from '../src/types';
 import { createNotebookDom, flushPromises } from './test-helpers';
 
 const enqueueViaModal = async (text: string): Promise<void> => {
@@ -16,14 +17,27 @@ const enqueueViaModal = async (text: string): Promise<void> => {
 };
 
 describe('QueueController', () => {
+  let sendMessageSpy: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.useFakeTimers();
     window.history.pushState({}, '', '/notebook/test-notebook');
+    sendMessageSpy = vi.fn((message: unknown, callback?: () => void) => {
+      callback?.();
+      return message;
+    });
+    vi.stubGlobal('chrome', {
+      runtime: {
+        sendMessage: sendMessageSpy,
+        lastError: undefined
+      }
+    });
   });
 
   afterEach(() => {
     vi.clearAllTimers();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
     document.body.innerHTML = '';
   });
 
@@ -81,6 +95,8 @@ describe('QueueController', () => {
       expect(state.activePrompt?.text).toBe('Prompt two');
     });
 
+    expect(sendMessageSpy).not.toHaveBeenCalled();
+
     harness.setReady();
     await vi.advanceTimersByTimeAsync(100);
     await flushPromises();
@@ -89,6 +105,60 @@ describe('QueueController', () => {
       const state = await store.load('test-notebook');
       expect(state.activePrompt).toBeNull();
     });
+
+    expect(sendMessageSpy).toHaveBeenCalledTimes(1);
+    expect(sendMessageSpy).toHaveBeenCalledWith(
+      {
+        type: QUEUE_COMPLETE_NOTIFICATION_MESSAGE,
+        notebookId: 'test-notebook'
+      },
+      expect.any(Function)
+    );
+
+    controller.stop();
+  });
+
+  it('notifies when a manual NotebookLM response finishes and no queued prompts remain', async () => {
+    const harness = createNotebookDom();
+    const store = new NotebookQueueStore(new InMemoryStorageArea());
+    const controller = new QueueController({
+      document,
+      window,
+      store,
+      autoStartDelayMs: 1000
+    });
+
+    await controller.start();
+
+    harness.textarea.value = 'Manual prompt';
+    harness.textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const sendButton = harness.getSendButton();
+    if (!sendButton) {
+      throw new Error('Send button was not rendered');
+    }
+
+    sendButton.click();
+    await vi.advanceTimersByTimeAsync(0);
+    await flushPromises();
+
+    expect(sendMessageSpy).not.toHaveBeenCalled();
+
+    harness.setReady();
+    await vi.advanceTimersByTimeAsync(100);
+    await flushPromises();
+
+    await vi.waitFor(() => {
+      expect(sendMessageSpy).toHaveBeenCalledTimes(1);
+    });
+
+    expect(sendMessageSpy).toHaveBeenCalledWith(
+      {
+        type: QUEUE_COMPLETE_NOTIFICATION_MESSAGE,
+        notebookId: 'test-notebook'
+      },
+      expect.any(Function)
+    );
 
     controller.stop();
   });

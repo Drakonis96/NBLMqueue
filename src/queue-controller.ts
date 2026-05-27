@@ -19,7 +19,11 @@ import {
   readPromptValue,
   setPromptValue
 } from './notebooklm-dom';
-import type { NotebookQueueState } from './types';
+import {
+  QUEUE_COMPLETE_NOTIFICATION_MESSAGE,
+  type NotebookQueueState,
+  type QueueCompleteNotificationMessage
+} from './types';
 
 const DEFAULT_AUTO_START_DELAY_MS = 1000;
 const EXTENSION_UI_SELECTOR = '#nblmq-controls, #nblmq-modal';
@@ -49,6 +53,7 @@ export class QueueController {
   private autoStartTimer: number | null = null;
   private nextAutoStartAt = 0;
   private dispatchInFlight = false;
+  private wasGenerating = false;
 
   constructor(options: QueueControllerOptions = {}) {
     this.doc = options.document ?? document;
@@ -177,6 +182,10 @@ export class QueueController {
     await this.ensureNotebookState();
 
     const snapshot = getNotebookSnapshot(this.doc);
+    const readyForQueue = isReadyForQueue(snapshot);
+    const generationInProgress = isGenerationInProgress(snapshot);
+    const generationFinished = this.wasGenerating && !generationInProgress && readyForQueue;
+
     this.ui.render(snapshot, this.state, {
       modalOpen: this.modalOpen,
       notebookId: this.currentNotebookId
@@ -184,10 +193,11 @@ export class QueueController {
 
     if (!this.currentNotebookId) {
       this.clearAutoStartTimer();
+      this.wasGenerating = generationInProgress;
       return;
     }
 
-    if (this.state.activePrompt && isReadyForQueue(snapshot)) {
+    if (this.state.activePrompt && readyForQueue) {
       this.state = clearActivePrompt(this.state);
       await this.persistState();
       this.ui.render(getNotebookSnapshot(this.doc), this.state, {
@@ -197,25 +207,34 @@ export class QueueController {
 
       if (this.state.pending.length > 0) {
         await this.dispatchNextPrompt(true);
+        this.wasGenerating = isGenerationInProgress(getNotebookSnapshot(this.doc));
         return;
       }
     }
 
+    if (generationFinished && this.state.pending.length === 0) {
+      this.notifyQueueComplete();
+    }
+
     if (this.dispatchInFlight) {
+      this.wasGenerating = generationInProgress;
       return;
     }
 
-    if (this.state.pending.length === 0 || isGenerationInProgress(snapshot) || this.modalOpen) {
+    if (this.state.pending.length === 0 || generationInProgress || this.modalOpen) {
       this.clearAutoStartTimer();
+      this.wasGenerating = generationInProgress;
       return;
     }
 
-    if (!isReadyForQueue(snapshot) || readPromptValue(snapshot).length > 0) {
+    if (!readyForQueue || readPromptValue(snapshot).length > 0) {
       this.clearAutoStartTimer();
+      this.wasGenerating = generationInProgress;
       return;
     }
 
     this.scheduleAutoStart();
+    this.wasGenerating = generationInProgress;
   }
 
   private async ensureNotebookState(): Promise<void> {
@@ -227,6 +246,7 @@ export class QueueController {
     this.currentNotebookId = nextNotebookId;
     this.modalOpen = false;
     this.clearAutoStartTimer();
+    this.wasGenerating = false;
     this.state = nextNotebookId ? await this.store.load(nextNotebookId) : createEmptyQueueState();
   }
 
@@ -383,6 +403,25 @@ export class QueueController {
     }
 
     await this.store.save(this.currentNotebookId, this.state);
+  }
+
+  private notifyQueueComplete(): void {
+    if (!this.currentNotebookId || !globalThis.chrome?.runtime?.sendMessage) {
+      return;
+    }
+
+    const message: QueueCompleteNotificationMessage = {
+      type: QUEUE_COMPLETE_NOTIFICATION_MESSAGE,
+      notebookId: this.currentNotebookId
+    };
+
+    try {
+      globalThis.chrome.runtime.sendMessage(message, () => {
+        void globalThis.chrome.runtime.lastError;
+      });
+    } catch {
+      // Ignore runtime messaging failures in the page context.
+    }
   }
 
   private waitForEnabledSendButton(): Promise<HTMLButtonElement | null> {

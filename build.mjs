@@ -9,9 +9,12 @@ const distDir = path.join(rootDir, 'dist');
 await mkdir(distDir, { recursive: true });
 
 await build({
-  entryPoints: [path.join(rootDir, 'src/content-script.ts')],
+  entryPoints: {
+    'content-script': path.join(rootDir, 'src/content-script.ts'),
+    background: path.join(rootDir, 'src/background.ts')
+  },
   bundle: true,
-  outfile: path.join(distDir, 'content-script.js'),
+  outdir: distDir,
   format: 'iife',
   platform: 'browser',
   target: ['chrome120'],
