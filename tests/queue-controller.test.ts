@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { QueueController } from '../src/queue-controller';
-import { InMemoryStorageArea, NotebookQueueStore } from '../src/queue-store';
+import { InMemoryStorageArea, NotebookQueueStore, createQueueItem } from '../src/queue-store';
 import { QUEUE_COMPLETE_NOTIFICATION_MESSAGE } from '../src/types';
 import { createNotebookDom, flushPromises } from './test-helpers';
 
@@ -159,6 +159,45 @@ describe('QueueController', () => {
       },
       expect.any(Function)
     );
+
+    controller.stop();
+  });
+
+  it('notifies when the last queued prompt completes even if the generating transition was missed', async () => {
+    createNotebookDom();
+    const store = new NotebookQueueStore(new InMemoryStorageArea());
+
+    await store.save('test-notebook', {
+      pending: [],
+      activePrompt: createQueueItem('Final queued prompt', 1),
+      updatedAt: 1
+    });
+
+    const controller = new QueueController({
+      document,
+      window,
+      store,
+      autoStartDelayMs: 1000
+    });
+
+    await controller.start();
+
+    await vi.waitFor(() => {
+      expect(sendMessageSpy).toHaveBeenCalledTimes(1);
+    });
+
+    expect(sendMessageSpy).toHaveBeenCalledWith(
+      {
+        type: QUEUE_COMPLETE_NOTIFICATION_MESSAGE,
+        notebookId: 'test-notebook'
+      },
+      expect.any(Function)
+    );
+
+    await vi.waitFor(async () => {
+      const state = await store.load('test-notebook');
+      expect(state.activePrompt).toBeNull();
+    });
 
     controller.stop();
   });

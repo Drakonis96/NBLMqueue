@@ -184,6 +184,7 @@ export class QueueController {
     const snapshot = getNotebookSnapshot(this.doc);
     const readyForQueue = isReadyForQueue(snapshot);
     const generationInProgress = isGenerationInProgress(snapshot);
+    const queuedPromptCompleted = Boolean(this.state.activePrompt) && readyForQueue;
     const generationFinished = this.wasGenerating && !generationInProgress && readyForQueue;
 
     this.ui.render(snapshot, this.state, {
@@ -197,7 +198,7 @@ export class QueueController {
       return;
     }
 
-    if (this.state.activePrompt && readyForQueue) {
+    if (queuedPromptCompleted) {
       this.state = clearActivePrompt(this.state);
       await this.persistState();
       this.ui.render(getNotebookSnapshot(this.doc), this.state, {
@@ -212,7 +213,7 @@ export class QueueController {
       }
     }
 
-    if (generationFinished && this.state.pending.length === 0) {
+    if ((queuedPromptCompleted || generationFinished) && this.state.pending.length === 0) {
       this.notifyQueueComplete();
     }
 
