@@ -24,3 +24,4 @@ await build({
 
 await copyFile(path.join(rootDir, 'manifest.json'), path.join(distDir, 'manifest.json'));
 await copyFile(path.join(rootDir, 'logo.png'), path.join(distDir, 'logo.png'));
+await copyFile(path.join(rootDir, 'notification-icon.png'), path.join(distDir, 'notification-icon.png'));
