@@ -55,6 +55,7 @@ export class QueueController {
   private nextAutoStartAt = 0;
   private dispatchInFlight = false;
   private wasGenerating = false;
+  private queueNotificationArmed = false;
 
   constructor(options: QueueControllerOptions = {}) {
     this.doc = options.document ?? document;
@@ -188,6 +189,10 @@ export class QueueController {
     const queuedPromptCompleted = Boolean(this.state.activePrompt) && readyForQueue;
     const generationFinished = this.wasGenerating && !generationInProgress && readyForQueue;
 
+    if (this.state.pending.length > 0 || this.state.activePrompt) {
+      this.queueNotificationArmed = true;
+    }
+
     this.ui.render(snapshot, this.state, {
       modalOpen: this.modalOpen,
       notebookId: this.currentNotebookId
@@ -198,6 +203,8 @@ export class QueueController {
       this.wasGenerating = generationInProgress;
       return;
     }
+
+    let queueNotificationSent = false;
 
     if (queuedPromptCompleted) {
       this.state = clearActivePrompt(this.state);
@@ -212,10 +219,17 @@ export class QueueController {
         this.wasGenerating = isGenerationInProgress(getNotebookSnapshot(this.doc));
         return;
       }
+
+      if (this.state.pending.length === 0 && this.queueNotificationArmed) {
+        this.notifyQueueComplete();
+        this.queueNotificationArmed = false;
+        queueNotificationSent = true;
+      }
     }
 
-    if ((queuedPromptCompleted || generationFinished) && this.state.pending.length === 0) {
+    if (!queueNotificationSent && generationFinished && this.state.pending.length === 0) {
       this.notifyQueueComplete();
+      this.queueNotificationArmed = false;
     }
 
     if (this.dispatchInFlight) {
@@ -249,6 +263,7 @@ export class QueueController {
     this.modalOpen = false;
     this.clearAutoStartTimer();
     this.wasGenerating = false;
+    this.queueNotificationArmed = false;
     this.state = nextNotebookId ? await this.store.load(nextNotebookId) : createEmptyQueueState();
   }
 

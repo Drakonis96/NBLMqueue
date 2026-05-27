@@ -9,7 +9,8 @@ const QUEUE_COMPLETE_NOTIFICATION_ID_PREFIX = 'nblmqueue:queue-complete';
 const QUEUE_COMPLETE_NOTIFICATION_TITLE = 'NotebookLM queue complete';
 const QUEUE_COMPLETE_NOTIFICATION_MESSAGE_BODY =
   'NotebookLM has finished responding to all queued prompts.';
-const QUEUE_COMPLETE_NOTIFICATION_ICON = 'notification-icon.png';
+const QUEUE_COMPLETE_NOTIFICATION_ICON =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2ioAAAAASUVORK5CYII=';
 
 const createQueueCompleteNotification = async (
   message: QueueCompleteNotificationMessage
