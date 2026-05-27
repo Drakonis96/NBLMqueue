@@ -11,6 +11,13 @@ export interface QueueCompleteNotificationMessage {
   notebookId: string;
 }
 
+export interface QueueCompleteNotificationResponse {
+  ok: boolean;
+  notificationId?: string;
+  permissionLevel?: string;
+  error?: string;
+}
+
 export const isQueueCompleteNotificationMessage = (
   value: unknown
 ): value is QueueCompleteNotificationMessage => {

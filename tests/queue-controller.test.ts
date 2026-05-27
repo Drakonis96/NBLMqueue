@@ -21,9 +21,10 @@ describe('QueueController', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.spyOn(console, 'info').mockImplementation(() => undefined);
     window.history.pushState({}, '', '/notebook/test-notebook');
-    sendMessageSpy = vi.fn((message: unknown, callback?: () => void) => {
-      callback?.();
+    sendMessageSpy = vi.fn((message: unknown, callback?: (response?: { ok: boolean }) => void) => {
+      callback?.({ ok: true });
       return message;
     });
     vi.stubGlobal('chrome', {
@@ -37,6 +38,7 @@ describe('QueueController', () => {
   afterEach(() => {
     vi.clearAllTimers();
     vi.useRealTimers();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
     document.body.innerHTML = '';
   });

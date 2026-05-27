@@ -22,7 +22,8 @@ import {
 import {
   QUEUE_COMPLETE_NOTIFICATION_MESSAGE,
   type NotebookQueueState,
-  type QueueCompleteNotificationMessage
+  type QueueCompleteNotificationMessage,
+  type QueueCompleteNotificationResponse
 } from './types';
 
 const DEFAULT_AUTO_START_DELAY_MS = 1000;
@@ -417,9 +418,38 @@ export class QueueController {
     };
 
     try {
-      globalThis.chrome.runtime.sendMessage(message, () => {
-        void globalThis.chrome.runtime.lastError;
-      });
+      globalThis.chrome.runtime.sendMessage(
+        message,
+        (response?: QueueCompleteNotificationResponse) => {
+          if (globalThis.chrome.runtime.lastError) {
+            console.error(
+              'NBLMqueue failed to send the queue completion notification request.',
+              globalThis.chrome.runtime.lastError.message
+            );
+            return;
+          }
+
+          if (!response) {
+            console.warn('NBLMqueue did not receive a response for the queue completion notification request.');
+            return;
+          }
+
+          if (!response.ok) {
+            console.error(
+              'NBLMqueue could not show the queue completion notification.',
+              response.error ?? 'Unknown error',
+              response.permissionLevel ? `(permission: ${response.permissionLevel})` : ''
+            );
+            return;
+          }
+
+          console.info(
+            'NBLMqueue requested a queue completion notification successfully.',
+            response.notificationId ?? 'unknown-notification-id',
+            response.permissionLevel ? `(permission: ${response.permissionLevel})` : ''
+          );
+        }
+      );
     } catch {
       // Ignore runtime messaging failures in the page context.
     }
