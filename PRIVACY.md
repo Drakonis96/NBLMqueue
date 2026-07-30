@@ -49,7 +49,7 @@ NBLMqueue does not use external analytics, advertising, or remote processing ser
 NBLMqueue uses the following Chrome extension permissions only to support its queue workflow:
 
 - `storage` to save queue data locally on the device
-- Host access to `https://notebooklm.google.com/*` to detect NotebookLM page state and submit queued prompts locally in the browser
+- Host access to `https://notebooklm.google.com/*` and `https://notebook.google.com/*` to detect NotebookLM page state and submit queued prompts locally in the browser
 
 ## User controls
 
