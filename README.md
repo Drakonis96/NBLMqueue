@@ -10,6 +10,8 @@ NBLMqueue runs locally in your browser. It does not need an external server for 
 
 NBLMqueue is an independent project and is not affiliated with, endorsed by, or sponsored by Google or NotebookLM.
 
+NBLMqueue supports NotebookLM on both `notebooklm.google.com` and `notebook.google.com`.
+
 ## Why use it
 
 - NotebookLM normally accepts one prompt at a time.
